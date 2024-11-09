@@ -127,7 +127,7 @@ void MainWindow::InitializeComponents()
         // 创建文本控件
         m_leftTextCtrl = new wxStyledTextCtrl(leftPanel, ID_LEFT_TEXT);
         m_rightTextCtrl = new wxStyledTextCtrl(rightPanel, ID_RIGHT_TEXT);
-        m_rightTextCtrl->SetReadOnly(true); // 只读
+        // m_rightTextCtrl->SetReadOnly(true); // 只读
 
         // 将文本控件添加到对应的 sizer
         leftSizer->Add(m_leftTextCtrl, 1, wxEXPAND | wxALL, 5);

@@ -1,8 +1,10 @@
 # ASM2HEX Converter
-
+The new version is refactored using C++ (cpp), while the original version was developed using Golang.
 A cross-platform GUI tool for converting between Assembly and Machine Code (Hex), powered by [Keystone Engine](https://www.keystone-engine.org) and [Capstone Engine](https://www.capstone-engine.org).
 
-![Screenshot](screenshots/main.png)
+![Screenshot](screenshots/about.png)
+![Screenshot](screenshots/asm2hex.png)
+![Screenshot](screenshots/hex2asm.png)
 
 ## Features
 
@@ -17,7 +19,7 @@ A cross-platform GUI tool for converting between Assembly and Machine Code (Hex)
   - And more...
 - **Detailed Instruction Information**: View detailed instruction analysis when disassembling
 - **Syntax Highlighting**: For both Assembly and Hex code
-- **Cross-Platform**: Supports Windows and macOS
+- **Cross-Platform**: Supports Windows and macOS/Linux
 - **User-Friendly Interface**: Built with wxWidgets for native look and feel
 
 ## Usage
@@ -82,7 +84,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Author
 
-suifei (suifei@gmail.com)
+suifei (c3VpZmUgQGdtYWlsIGRvdGNvbQ==)
+QQ group:555354813
 
 ## Contributing
 
