@@ -1,0 +1,75 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/src/cstool/**",
+                "${workspaceFolder}/dep/win/lib/gcc_lib/mswu",
+                "${workspaceFolder}/dep/win/include",
+                "${workspaceFolder}/dep/keystone/include",
+                "${workspaceFolder}/dep/capstone/include"
+            ],
+            "defines": [
+                "_WINDOWS",
+                "_UNICODE",
+                "__WXMSW__",
+                "NDEBUG",
+                "NOPCH",
+                "WIN32",
+                "LLVM_ENABLE_ARCH_ARM",
+                "LLVM_ENABLE_ARCH_AArch64",
+                "LLVM_ENABLE_ARCH_Mips",
+                "LLVM_ENABLE_ARCH_PowerPC",
+                "LLVM_ENABLE_ARCH_Sparc",
+                "LLVM_ENABLE_ARCH_X86",
+                "LLVM_ENABLE_ARCH_Hexagon",
+                "LLVM_ENABLE_ARCH_SystemZ",
+                "LLVM_ENABLE_ARCH_EVM"
+            ],
+            "compilerPath": "E:\\msys64\\mingw64\\bin\\g++.exe",
+            "cStandard": "c11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "gcc-x86"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/dep/mac/mac_lib/lib/wx/include/osx_cocoa-unicode-static-3.2",
+                "${workspaceFolder}/dep/mac/include",
+                "${workspaceFolder}/src/cstool/**",
+                "${workspaceFolder}/dep/keystone/include",
+                "${workspaceFolder}/dep/capstone/include"
+            ],
+            "defines": [
+                "WX_PRECOMP",
+                "__WXOSX_COCOA__",
+                "_FILE_OFFSET_BITS=64",
+                "__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=1"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "clang-x86"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/dep/linux/linux_lib/lib/wx/include/gtk3-unicode-static-3.2",
+                "${workspaceFolder}/dep/linux/include"
+            ],
+            "defines": [
+                "WX_PRECOMP",
+                "__WXGTK__",
+                "_FILE_OFFSET_BITS=64"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

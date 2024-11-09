@@ -1,0 +1,40 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "linux": {
+                "program": "${workspaceRoot}/out/ASM2HEX",
+                "MIMode": "gdb",
+                "miDebuggerPath": "/usr/bin/gdb",
+            },
+            "osx": {
+                "program": "${workspaceRoot}/out/ASM2HEX",
+                "MIMode": "lldb"
+            },
+            "windows": {
+                "program": "${workspaceRoot}\\out\\ASM2HEX.exe",
+                "MIMode": "gdb",
+                "miDebuggerPath": "E:\\msys64\\mingw64\\bin\\gdb.exe"
+            },  
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/out",
+            "program": "${workspaceFolder}/out/ASM2HEX",
+            "environment": [],
+            "externalConsole": false,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "Compile & Link"
+        }
+    ]
+}
