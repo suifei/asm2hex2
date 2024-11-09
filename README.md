@@ -22,6 +22,10 @@ A cross-platform GUI tool for converting between Assembly and Machine Code (Hex)
 - **Cross-Platform**: Supports Windows and macOS/Linux
 - **User-Friendly Interface**: Built with wxWidgets for native look and feel
 
+![Screenshot](screenshots/support1.png)
+![Screenshot](screenshots/support2.png)
+
+
 ## Usage
 
 1. Select your target architecture and mode
