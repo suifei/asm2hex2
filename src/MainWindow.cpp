@@ -408,8 +408,10 @@ void MainWindow::UpdateModeUI()
 
     // 更新按钮颜色
     m_convertBtn->SetForegroundColour(convertBtnColor);
+    m_convertBtn->SetDefault(); // 设置为默认按钮
     m_clearBtn->SetForegroundColour(clearBtnColor);
     m_aboutBtn->SetForegroundColour(aboutBtnColor);
+
     // 更新标题和提示
     if (m_isAsmToHexMode)
     {
