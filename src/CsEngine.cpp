@@ -525,7 +525,10 @@ bool CsEngine::convert(const std::string &archMode, const std::string &hexString
         if (verbose)
         {
             std::string detail = print_details(handle, arch, mode, &insn[i]);
-            result.detail = detail;
+            result.detail = detail.c_str();
+            clear_printf_buffer();
+        }else{
+            result.detail = "";
         }
 
         results.push_back(result);

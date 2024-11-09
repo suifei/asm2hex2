@@ -71,7 +71,8 @@
         "typeinfo": "cpp",
         "capstone.h": "c",
         "cstool.h": "c",
-        "printf_wrapper.h": "c"
+        "printf_wrapper.h": "c",
+        "__locale": "cpp"
     },
     "commentTranslate.hover.enabled": true
 }

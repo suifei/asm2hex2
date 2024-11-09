@@ -87,5 +87,5 @@ const char*  print_details(csh handle, cs_arch arch, cs_mode md, cs_insn *ins)
 
 	printf_to_string("\n");
 
-	return get_detail();
+		return get_detail();
 }

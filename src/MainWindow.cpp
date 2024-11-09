@@ -592,8 +592,8 @@ void MainWindow::ConvertHexToAsm()
                 output += wxString::Format("\t%s\t%s", result.mnemonic, result.operands);
             }
         }
-
-        m_rightTextCtrl->SetValue(output);
+        m_rightTextCtrl->ClearAll();
+        m_rightTextCtrl->AddText(output);
         UpdateStatusBar("Disassembly successful");
     }
     else
@@ -624,7 +624,8 @@ void MainWindow::ConvertAsmToHex()
 
     if (success)
     {
-        m_rightTextCtrl->SetValue(output);
+        m_rightTextCtrl->ClearAll();
+        m_rightTextCtrl->AddText(output);
         UpdateStatusBar("Conversion successful");
     }
     else
