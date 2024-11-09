@@ -1,13 +1,12 @@
 #include "MainWindow.hpp"
-#include "AboutDialog.hpp"
 
-#include "KsEngine.hpp"
-#include "CsEngine.hpp"
-#include "Resources.hpp"
-#include <wx/stattext.h>
-#include <wx/wupdlock.h>
-#include <wx/display.h>
-#include <keystone/keystone.h>
+wxColour csColor(128, 0, 0);         // 蓝色
+wxColour ksColor(0, 0, 255);         // 红色
+wxColour convertBtnColor(0, 255, 0); // 绿色
+wxColour clearBtnColor(255, 0, 0);   // 红色
+wxColour aboutBtnColor(128, 0, 128); // 紫色
+wxColour blackColor(0, 0, 0);        // 黑色
+wxColour whiteColor(255, 255, 255);  // 白色
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame) EVT_BUTTON(ID_CONVERT_BUTTON, MainWindow::OnConvert)
     EVT_BUTTON(ID_CLEAR_BUTTON, MainWindow::OnClear) EVT_BUTTON(ID_TOGGLE_MODE_BUTTON, MainWindow::OnToggleMode)
@@ -22,6 +21,15 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame) EVT_BUTTON(ID_CONVERT_BUTTON, MainWindo
       m_isAsmToHexMode(true),
       lastSelectedArch("arm64")
 {
+
+    InitializeComponents();
+
+    UpdateStatusBar("Ready");
+}
+
+void MainWindow::InitializeComponents()
+{
+
     // 获取屏幕大小
     wxDisplay display(wxDisplay::GetFromWindow(this));
     wxRect screenRect = display.GetGeometry();
@@ -33,23 +41,6 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame) EVT_BUTTON(ID_CONVERT_BUTTON, MainWindo
     // 设置最小尺寸（可以是固定值或基于屏幕比例）
     SetMinSize(wxSize(800, 600));
 
-    InitializeComponents();
-    CreateMenuBar();
-
-    // 设置实际大小（使用计算的合理大小）
-    SetSize(width, height);
-
-    // 确保窗口不会小于最小尺寸
-    SetSizeHints(GetMinSize());
-
-    // 居中显示
-    Centre(wxBOTH);
-
-    UpdateStatusBar("Ready");
-}
-
-void MainWindow::InitializeComponents()
-{
     {
         wxWindowUpdateLocker lockUpdates(this);
         m_isAsmToHexMode = true;
@@ -147,11 +138,26 @@ void MainWindow::InitializeComponents()
         // 底部控件行
         wxBoxSizer *bottomSizer = new wxBoxSizer(wxHORIZONTAL);
         m_offsetTextCtrl = new wxTextCtrl(panel, ID_OFFSET_TEXT);
-        m_convertBtn = new wxButton(panel, ID_CONVERT_BUTTON, "Convert");
-        m_convertBtn->SetMinSize(wxSize(100, -1));
-        m_clearBtn = new wxButton(panel, ID_CLEAR_BUTTON, "Clear");
-        m_toggleModeBtn = new wxButton(panel, ID_TOGGLE_MODE_BUTTON, "Toggle Mode");
-        m_aboutBtn = new wxButton(panel, ID_ABOUT_BUTTON, "About");
+        m_convertBtn = new wxButton(panel, ID_CONVERT_BUTTON, "Convert", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_clearBtn = new wxButton(panel, ID_CLEAR_BUTTON, "Clear", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_toggleModeBtn = new wxButton(panel, ID_TOGGLE_MODE_BUTTON, "Toggle Mode", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_aboutBtn = new wxButton(panel, ID_ABOUT_BUTTON, "About", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+
+        m_convertBtn->SetBackgroundColour(convertBtnColor);
+        m_convertBtn->SetForegroundColour(blackColor);
+        m_convertBtn->SetMinSize(wxSize(100, 25));
+
+        m_clearBtn->SetBackgroundColour(clearBtnColor);
+        m_clearBtn->SetForegroundColour(whiteColor);
+        m_clearBtn->SetMinSize(wxSize(100, 25));
+
+        m_toggleModeBtn->SetBackgroundColour(m_isAsmToHexMode ? ksColor : csColor);
+        m_toggleModeBtn->SetForegroundColour(whiteColor);
+        m_toggleModeBtn->SetMinSize(wxSize(100, 25));
+
+        m_aboutBtn->SetBackgroundColour(aboutBtnColor);
+        m_aboutBtn->SetForegroundColour(whiteColor);
+        m_aboutBtn->SetMinSize(wxSize(100, 25));
 
         bottomSizer->Add(new wxStaticText(panel, wxID_ANY, "Offset: "), 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
         bottomSizer->Add(m_offsetTextCtrl, 0, wxALL, 5);
@@ -200,6 +206,18 @@ void MainWindow::InitializeComponents()
     SetupTextCtrlStyles(m_rightTextCtrl, !m_isAsmToHexMode);
 
     // AddCustomSyntaxHighlighting(m_rightTextCtrl); // 添加自定义高亮
+
+    CreateMenuBar();
+
+    // 设置实际大小（使用计算的合理大小）
+    SetSize(width, height);
+
+    // 确保窗口不会小于最小尺寸
+    SetSizeHints(GetMinSize());
+
+    // 居中显示
+    Centre(wxBOTH);
+
     UpdateModeUI();
 }
 void MainWindow::AddCustomSyntaxHighlighting(wxStyledTextCtrl *stc)
@@ -371,7 +389,6 @@ void MainWindow::SetupTextCtrlStyles(wxStyledTextCtrl *stc, bool isAssembly)
     // stc->SetEdgeColumn(80);
     // stc->SetEdgeColour(wxColour(220, 220, 220));
 }
-
 void MainWindow::SwitchMode()
 {
     m_isAsmToHexMode = !m_isAsmToHexMode;
@@ -400,17 +417,9 @@ void MainWindow::SwitchMode()
 void MainWindow::UpdateModeUI()
 {
     wxWindowUpdateLocker lockUpdates(this);
-    wxColour csColor(128, 0, 0);         // 蓝色
-    wxColour ksColor(0, 0, 255);         // 红色
-    wxColour convertBtnColor(0, 255, 0); // 绿色
-    wxColour clearBtnColor(255, 0, 0);   // 红色
-    wxColour aboutBtnColor(128, 0, 128); // 紫色
 
     // 更新按钮颜色
-    m_convertBtn->SetForegroundColour(convertBtnColor);
-    m_convertBtn->SetDefault(); // 设置为默认按钮
-    m_clearBtn->SetForegroundColour(clearBtnColor);
-    m_aboutBtn->SetForegroundColour(aboutBtnColor);
+    m_toggleModeBtn->SetBackgroundColour(m_isAsmToHexMode ? ksColor : csColor);
 
     // 更新标题和提示
     if (m_isAsmToHexMode)
@@ -424,8 +433,6 @@ void MainWindow::UpdateModeUI()
         // m_leftTextCtrl->SetHint("Enter assembly code here...");
         // m_rightTextCtrl->SetHint("Hex output will appear here...");
         m_convertBtn->SetLabel("Assemble");
-
-        m_toggleModeBtn->SetForegroundColour(ksColor);
     }
     else
     {
@@ -438,8 +445,6 @@ void MainWindow::UpdateModeUI()
         // m_leftTextCtrl->SetHint("Enter hex code here...");
         // m_rightTextCtrl->SetHint("Assembly output will appear here...");
         m_convertBtn->SetLabel("Disassemble");
-
-        m_toggleModeBtn->SetForegroundColour(csColor);
     }
 
     Layout();
@@ -450,13 +455,29 @@ void MainWindow::UpdateModeUI()
 }
 void MainWindow::CreateMenuBar()
 {
-    wxMenuBar *menuBar = new wxMenuBar;
-    wxMenu *fileMenu = new wxMenu;
 
+    wxMenuBar *menuBar = new wxMenuBar;
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+    wxMenu *fileMenu = new wxMenu;
     fileMenu->Append(wxID_EXIT, "E&xit\tAlt-X", "Quit this program");
     menuBar->Append(fileMenu, "&File");
-
-    SetMenuBar(menuBar);
+    wxMenu *helpMenu = new wxMenu;
+    helpMenu->Append(wxID_ABOUT, "&About\tF1", "Show about dialog");
+    menuBar->Append(helpMenu, "&Help");
+#endif
+#if wxOSX_USE_COCOA
+    wxMenu *appleMenu = menuBar->OSXGetAppleMenu();
+    appleMenu->Insert(0, wxID_ABOUT, "&About\tF1", "Show about dialog");
+    appleMenu->InsertSeparator(1);
+#elif wxWIN
+#endif
+    Bind(wxEVT_MENU, &MainWindow::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_MENU, &MainWindow::OnAbout, this, wxID_ABOUT);
+    SetMenuBar(menuBar); // 对于Mac，我们需要将菜单栏设置在父窗口上
+}
+void MainWindow::OnExit(wxCommandEvent &event)
+{
+    this->Destroy();
 }
 void MainWindow::InitializeArchitectures()
 {
@@ -655,6 +676,7 @@ void MainWindow::OnAbout(wxCommandEvent &event)
 {
     AboutDialog dlg(this);
     dlg.ShowModal();
+    dlg.Destroy(); // 清理对话框
 }
 
 void MainWindow::OnArchChanged(wxCommandEvent &event)

@@ -4,8 +4,17 @@
 #include <wx/wx.h>
 #include <wx/statline.h>
 #include <wx/splitter.h>
+#include <wx/stattext.h>
+#include <wx/wupdlock.h>
+#include <wx/display.h>
 #include <wx/stc/stc.h>
-#include "KsEngine.hpp" // 新增：包含KsEngine头文件
+#include <keystone/keystone.h>
+
+#include "Resources.hpp"
+#include "AboutDialog.hpp"
+
+#include "KsEngine.hpp"
+#include "CsEngine.hpp"
 
 // 前向声明
 class wxChoice;
@@ -54,6 +63,7 @@ private:
   void OnModeChanged(wxCommandEvent &event);
   void OnHexChecked(wxCommandEvent &event);
   void OnSplitterSashPosChanged(wxSplitterEvent &event);
+  void OnExit(wxCommandEvent &event);
 
   // 辅助函数
   void InitializeComponents();
