@@ -5,7 +5,7 @@ A cross-platform GUI tool for converting between Assembly and Machine Code (Hex)
 ![Screenshot](screenshots/about.png)
 ![Screenshot](screenshots/asm2hex.png)
 ![Screenshot](screenshots/hex2asm.png)
-![Screenshot](screenshots/run-at-win7.png)
+![Screenshot](screenshots/win7-compatible.png)
 
 ## Features
 
