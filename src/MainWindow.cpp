@@ -1,12 +1,12 @@
 #include "MainWindow.hpp"
 
-wxColour csColor(128, 0, 0);         // 蓝色
-wxColour ksColor(0, 0, 255);         // 红色
-wxColour convertBtnColor(0, 255, 0); // 绿色
-wxColour clearBtnColor(255, 0, 0);   // 红色
-wxColour aboutBtnColor(128, 0, 128); // 紫色
-wxColour blackColor(0, 0, 0);        // 黑色
-wxColour whiteColor(255, 255, 255);  // 白色
+wxColour csColor(128, 0, 0, 80);         // 蓝色
+wxColour ksColor(0, 0, 255, 80);         // 红色
+wxColour convertBtnColor(0, 255, 0, 80); // 绿色
+wxColour clearBtnColor(128, 0, 0, 80);   // 红色
+wxColour aboutBtnColor(255, 0, 255, 80); // 紫色
+wxColour blackColor(0, 0, 0, 80);        // 黑色
+wxColour whiteColor(255, 255, 255, 80);  // 白色
 
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame) EVT_BUTTON(ID_CONVERT_BUTTON, MainWindow::OnConvert)
     EVT_BUTTON(ID_CLEAR_BUTTON, MainWindow::OnClear) EVT_BUTTON(ID_TOGGLE_MODE_BUTTON, MainWindow::OnToggleMode)
@@ -465,7 +465,7 @@ void MainWindow::CreateMenuBar()
     helpMenu->Append(wxID_ABOUT, "&About\tF1", "Show about dialog");
     menuBar->Append(helpMenu, "&Help");
 #endif
-#if wxOSX_USE_COCOA
+#if wxOSX_USE_COCOA // 对于Mac，我们需要将菜单栏设置在父窗口上
     wxMenu *appleMenu = menuBar->OSXGetAppleMenu();
     appleMenu->Insert(0, wxID_ABOUT, "&About\tF1", "Show about dialog");
     appleMenu->InsertSeparator(1);
@@ -473,7 +473,7 @@ void MainWindow::CreateMenuBar()
 #endif
     Bind(wxEVT_MENU, &MainWindow::OnExit, this, wxID_EXIT);
     Bind(wxEVT_MENU, &MainWindow::OnAbout, this, wxID_ABOUT);
-    SetMenuBar(menuBar); // 对于Mac，我们需要将菜单栏设置在父窗口上
+    SetMenuBar(menuBar);
 }
 void MainWindow::OnExit(wxCommandEvent &event)
 {
