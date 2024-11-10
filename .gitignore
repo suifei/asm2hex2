@@ -9,6 +9,7 @@ dep/mac/
 dep/win/
 out/
 
+[Bb]uild*/
 !dep/win/keep
 
 src/logo/logo_data.h.txt

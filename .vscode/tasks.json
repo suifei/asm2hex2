@@ -114,6 +114,10 @@
                     "-lwxmsw32u_core",
                     "-lwxbase32u",
                     "-lwxpng",
+                    "-lwxregexu",
+                    "-lwxzlib",
+                    "-lwxjpeg",
+                    "-lwxpng",
                     "-lcomdlg32",
                     "-lgdi32",
                     "-lcomctl32",
@@ -123,16 +127,12 @@
                     "-luuid",
                     "-lwinspool",
                     "-lz",
-                    "-lwxregexu",
-                    "-lwxzlib",
                     "-luxtheme",
                     "-loleacc",
                     "-lshlwapi",
                     "-lversion",
                     "-lkeystone",
-                    "-lcapstone",
-                    "-lwxjpeg",
-                    "-lwxpng"
+                    "-lcapstone"
                 ]
             },
             "group": {
