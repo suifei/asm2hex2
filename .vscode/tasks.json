@@ -111,13 +111,16 @@
                     "${workspaceFolder}\\out\\**.o",
                     "-o",
                     "${workspaceFolder}\\out\\ASM2HEX.exe",
+                    "-lwxmsw32u_stc",
+                    "-lwxscintilla",
                     "-lwxmsw32u_core",
                     "-lwxbase32u",
                     "-lwxpng",
                     "-lwxregexu",
                     "-lwxzlib",
                     "-lwxjpeg",
-                    "-lwxpng",
+                    "-lwxmsw32u_adv",
+                    "-lwxmsw32u_html",
                     "-lcomdlg32",
                     "-lgdi32",
                     "-lcomctl32",
@@ -130,6 +133,7 @@
                     "-luxtheme",
                     "-loleacc",
                     "-lshlwapi",
+                    "-limm32",
                     "-lversion",
                     "-lkeystone",
                     "-lcapstone"
@@ -254,7 +258,8 @@
                     "-DNDEBUG",
                     "-DNOPCH",
                     "-DwxUSE_UNICODE",
-                    "-DWIN32"
+                    "-DWIN32",
+                    "-D_CRT_SECURE_NO_WARNINGS"
                 ]
             },
             "options": {

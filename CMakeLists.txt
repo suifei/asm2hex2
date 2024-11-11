@@ -1,11 +1,19 @@
 cmake_minimum_required(VERSION 3.15)
+
+if(WIN32)
+    # Add path to MinGW bin folder , E:/msys64/mingw64/bin/
+    set(CMAKE_C_COMPILER "gcc.exe")
+    set(CMAKE_CXX_COMPILER "g++.exe")
+endif()
+
 project(ASM2HEX)
 
 # Set C++ standard based on c_cpp_properties.json
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_OSX_DEPLOYMENT_TARGET 12.3)
-
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 12.3)
+endif()
 # Options for static linking
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
@@ -35,7 +43,7 @@ if(APPLE)
 elseif(WIN32)
     set(wxWidgets_ROOT_DIR "${CMAKE_SOURCE_DIR}/dep/win")
     set(wxWidgets_CONFIGURATION mswu)
-    add_definitions(-D_WINDOWS -D_UNICODE -D__WXMSW__ -DNDEBUG -DNOPCH -DwxUSE_UNICODE -WIN32)
+    add_definitions(-D_WINDOWS -D_UNICODE -D__WXMSW__ -DNDEBUG -DNOPCH -DwxUSE_UNICODE -DWIN32 -D_CRT_SECURE_NO_WARNINGS)
 
     # Include directories for wxWidgets
     include_directories(
@@ -150,36 +158,77 @@ if(APPLE)
         "/usr/local/lib"
     )
 elseif(WIN32)
-    # Link flags and libraries from tasks.json
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-        wxmsw32u_core
-        wxbase32u
-        wxpng
+    # Check if using MSVC
+    if(MSVC)        
+        # Set MSVC-specific flags
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
+        
+        add_definitions(
+            -D_CRT_SECURE_NO_WARNINGS
+            -D_CRT_NONSTDC_NO_WARNINGS
+            /wd4996
+        )
+        # Use static runtime
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        
+        # Force static linking for MSVC
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:MSVCRT")
+    endif()
+
+
+    # Define libraries
+    set(WXLIBS
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxmsw32u_stc.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxscintilla.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxmsw32u_core.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxbase32u.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxpng.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxregexu.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxzlib.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxjpeg.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxmsw32u_adv.a
+        ${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib/libwxmsw32u_html.a
+    )
+
+    set(THIRDPARTY_LIBS
+        ${CMAKE_SOURCE_DIR}/dep/lib/win/libkeystone.a
+        ${CMAKE_SOURCE_DIR}/dep/lib/win/libcapstone.a
+    )
+
+    set(WIN_SYSTEM_LIBS
         comdlg32
         gdi32
         comctl32
         ole32
         oleaut32
-        dmoguids
         uuid
         winspool
-        z
-        wxregexu
-        wxzlib
         uxtheme
         oleacc
         shlwapi
+        imm32
         version
-        keystone
-        capstone
-        wxjpeg
-        wxpng
+        ws2_32
+        rpcrt4
     )
     
+    # Link everything
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${WXLIBS}
+        ${THIRDPARTY_LIBS}
+        ${WIN_SYSTEM_LIBS}
+    )
+
     # Link directories
     target_link_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/dep/win/lib/gcc_lib"
         "${CMAKE_SOURCE_DIR}/dep/lib/win"
+    )
+    
+    # Set windows subsystem
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE TRUE
     )
     
     target_compile_options(${PROJECT_NAME} PRIVATE
