@@ -231,9 +231,18 @@ elseif(WIN32)
         WIN32_EXECUTABLE TRUE
     )
     
+    # 体积优化参数
     target_compile_options(${PROJECT_NAME} PRIVATE
         -mwindows
         -static
+        -Os
+        -ffunction-sections
+        -fdata-sections
+    )
+    # 链接时去除未用代码和符号
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -s
+        -Wl,--gc-sections
     )
 else() # Linux
     find_package(PkgConfig REQUIRED)
