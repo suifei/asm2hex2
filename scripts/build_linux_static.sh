@@ -138,14 +138,27 @@ build_wx() {
   make -j"${JOBS}"
   make install
   popd >/dev/null
-  # Headers layout expected by CMake: dep/linux/include -> wx headers
-  if [[ ! -e "${DEP}/linux/include" ]]; then
-    ln -sfn "${prefix}/include" "${DEP}/linux/include"
+  # wx install puts public headers under include/wx-3.2/wx/...
+  # CMake expects dep/linux/include/wx/wx.h
+  rm -f "${DEP}/linux/include"
+  if [[ -d "${prefix}/include/wx-3.2" ]]; then
+    ln -sfn "linux_lib/include/wx-3.2" "${DEP}/linux/include"
+  elif [[ -d "${prefix}/include/wx" ]]; then
+    ln -sfn "linux_lib/include" "${DEP}/linux/include"
+  else
+    echo "ERROR: wx public headers not found under ${prefix}/include" >&2
+    find "${prefix}/include" -maxdepth 3 -type d | head -40 || true
+    exit 1
   fi
-  # Sanity: core static archive must exist
+  # Sanity: core static archive + headers must exist
   if [[ ! -f "${marker}" ]]; then
     echo "ERROR: wx core static library missing after install: ${marker}" >&2
     ls -la "${prefix}/lib" || true
+    exit 1
+  fi
+  if [[ ! -f "${DEP}/linux/include/wx/wx.h" ]]; then
+    echo "ERROR: wx/wx.h missing at ${DEP}/linux/include/wx/wx.h" >&2
+    ls -la "${DEP}/linux/include" || true
     exit 1
   fi
   echo "==> wxWidgets -> ${prefix}"
