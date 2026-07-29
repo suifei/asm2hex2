@@ -130,12 +130,41 @@ if(APPLE)
         "${CMAKE_SOURCE_DIR}/dep/mac/mac_lib/lib/libwx_baseu-3.2.a"
     )
 
-    # Compiler flags from tasks.json
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-        -isysroot ${CMAKE_OSX_SYSROOT} \
-        -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}"
-    )
-    
+    # Prefer CMake's native macOS sysroot handling. Only inject -isysroot when set
+    # (empty CMAKE_OSX_SYSROOT used to break CI with "-isysroot -mmacosx-...").
+    if(CMAKE_OSX_SYSROOT)
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            -isysroot "${CMAKE_OSX_SYSROOT}"
+        )
+        target_link_options(${PROJECT_NAME} PRIVATE
+            -isysroot "${CMAKE_OSX_SYSROOT}"
+        )
+    endif()
+    if(CMAKE_OSX_DEPLOYMENT_TARGET)
+        target_compile_options(${PROJECT_NAME} PRIVATE
+            "-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+        )
+        target_link_options(${PROJECT_NAME} PRIVATE
+            "-mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+        )
+    endif()
+
+    # Optional third-party names (mspack may be absent on modern Homebrew)
+    find_library(MSPACK_LIB mspack)
+    find_library(PCRE2_32_LIB pcre2-32)
+    find_library(LZMA_LIB lzma)
+
+    set(MAC_OPTIONAL_LIBS "")
+    if(PCRE2_32_LIB)
+        list(APPEND MAC_OPTIONAL_LIBS ${PCRE2_32_LIB})
+    endif()
+    if(MSPACK_LIB)
+        list(APPEND MAC_OPTIONAL_LIBS ${MSPACK_LIB})
+    endif()
+    if(LZMA_LIB)
+        list(APPEND MAC_OPTIONAL_LIBS ${LZMA_LIB})
+    endif()
+
     # Link libraries from tasks.json
     target_link_libraries(${PROJECT_NAME} PRIVATE
         # Framework libraries
@@ -148,10 +177,10 @@ if(APPLE)
         "-framework WebKit"
         "-framework Security"
         "-framework QuartzCore"
-        
+
         # Static libraries from wxWidgets
-         ${WX_LIBS}
-        
+        ${WX_LIBS}
+
         # Additional libraries
         keystone
         capstone
@@ -159,11 +188,9 @@ if(APPLE)
         ${JPEG_LIBRARIES}
         ${PNG_LIBRARIES}
         ${ZLIB_LIBRARIES}
-        pcre2-32
-        mspack
+        ${MAC_OPTIONAL_LIBS}
         pthread
         iconv
-        lzma
     )
 
     # Link directories
