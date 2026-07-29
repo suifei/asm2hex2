@@ -37,4 +37,15 @@ if ($bad) {
   exit 1
 }
 Write-Host "STATIC_OK: no libgcc/libstdc++/libwinpthread DLLs"
-Get-Item "dist\ASM2HEX-win64.exe" | Format-List Name, Length, FullName
+
+# Release package: zip only (do not ship bare .exe for download)
+$stage = Join-Path $env:TEMP "asm2hex-win-zip"
+if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+New-Item -ItemType Directory -Force -Path $stage | Out-Null
+Copy-Item "dist\ASM2HEX-win64.exe" (Join-Path $stage "ASM2HEX.exe") -Force
+$zipPath = Join-Path $Root "dist\ASM2HEX-win64.zip"
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zipPath)
+Get-Item "dist\ASM2HEX-win64.exe", "dist\ASM2HEX-win64.zip" | Format-List Name, Length, FullName
+Write-Host "Release asset: dist\ASM2HEX-win64.zip (prefer this over bare .exe)"

@@ -26,11 +26,18 @@
 
 ## 下载
 
-| 平台 | 文件 |
-|------|------|
-| Windows x64（推荐） | `ASM2HEX-win64.exe` / `ASM2HEX-win64.7z` |
-| Linux x64 | 见 v1.0.2 资源或后续 CI 产物 |
-| macOS | 见 CI / 后续补发 |
+**Windows 仅提供 ZIP**（不解压不直接提供 `.exe` 下载，降低浏览器/SmartScreen 对裸 exe 的拦截）：
+
+| 平台 | 文件 | 说明 |
+|------|------|------|
+| Windows x64 | **`ASM2HEX-win64.zip`** | 解压后得到 `ASM2HEX.exe` |
+| Linux x64 | `ASM2HEX-linux-x64.tar.xz` | 解压后运行 `ASM2HEX` |
+| macOS | `ASM2HEX-macos-arm64.tar.xz` | 解压后运行 `ASM2HEX`（若有） |
+
+```text
+# Windows
+展开 ASM2HEX-win64.zip → 运行 ASM2HEX.exe
+```
 
 ## 变更
 

@@ -199,24 +199,32 @@ jobs:
           path: artifacts
           merge-multiple: false
 
-      - name: Stage release assets
+      - name: Stage release assets (archives only — no bare .exe)
         run: |
-          mkdir -p dist
+          mkdir -p dist stage
           find artifacts -type f -print || true
-          cp -f artifacts/ASM2HEX-win64/ASM2HEX-win64.exe dist/ 2>/dev/null || true
-          cp -f artifacts/ASM2HEX-linux-x64/ASM2HEX-linux-x64 dist/ 2>/dev/null || true
-          cp -f artifacts/ASM2HEX-macos-arm64/ASM2HEX-macos-arm64 dist/ 2>/dev/null || true
-          ls -lh dist || true
-          cd dist
-          if [ -f ASM2HEX-win64.exe ]; then
-            if command -v 7z >/dev/null; then 7z a -t7z -mx=9 ASM2HEX-win64.7z ASM2HEX-win64.exe
-            else zip -9 ASM2HEX-win64.zip ASM2HEX-win64.exe; fi
+          # Windows: only publish zip (avoid direct .exe download / SmartScreen noise)
+          if [ -f artifacts/ASM2HEX-win64/ASM2HEX-win64.exe ]; then
+            mkdir -p stage/win
+            cp -f artifacts/ASM2HEX-win64/ASM2HEX-win64.exe stage/win/ASM2HEX.exe
+            (cd stage/win && zip -9 ../../dist/ASM2HEX-win64.zip ASM2HEX.exe)
           fi
-          if [ -f ASM2HEX-linux-x64 ]; then tar -cJf ASM2HEX-linux-x64.tar.xz ASM2HEX-linux-x64; fi
-          if [ -f ASM2HEX-macos-arm64 ]; then tar -cJf ASM2HEX-macos-arm64.tar.xz ASM2HEX-macos-arm64; fi
-          ls -lh || true
-          # Fail only if nothing was produced
-          test -n "$(ls -A . 2>/dev/null)"
+          # Linux: only publish tar.xz
+          if [ -f artifacts/ASM2HEX-linux-x64/ASM2HEX-linux-x64 ]; then
+            mkdir -p stage/linux
+            cp -f artifacts/ASM2HEX-linux-x64/ASM2HEX-linux-x64 stage/linux/ASM2HEX
+            chmod +x stage/linux/ASM2HEX
+            tar -C stage/linux -cJf dist/ASM2HEX-linux-x64.tar.xz ASM2HEX
+          fi
+          # macOS: only publish tar.xz
+          if [ -f artifacts/ASM2HEX-macos-arm64/ASM2HEX-macos-arm64 ]; then
+            mkdir -p stage/mac
+            cp -f artifacts/ASM2HEX-macos-arm64/ASM2HEX-macos-arm64 stage/mac/ASM2HEX
+            chmod +x stage/mac/ASM2HEX
+            tar -C stage/mac -cJf dist/ASM2HEX-macos-arm64.tar.xz ASM2HEX
+          fi
+          ls -lh dist || true
+          test -n "$(ls -A dist 2>/dev/null)"
 
       - name: Resolve tag
         id: tag
@@ -232,12 +240,8 @@ jobs:
         with:
           tag_name: ${{ steps.tag.outputs.name }}
           files: |
-            dist/ASM2HEX-win64.exe
-            dist/ASM2HEX-win64.7z
             dist/ASM2HEX-win64.zip
-            dist/ASM2HEX-linux-x64
             dist/ASM2HEX-linux-x64.tar.xz
-            dist/ASM2HEX-macos-arm64
             dist/ASM2HEX-macos-arm64.tar.xz
           fail_on_unmatched_files: false
         env:

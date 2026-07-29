@@ -89,13 +89,15 @@ Linux CMake notes (fixed in v1.0.1 / issue #2): `src/cstool` is on the include p
 
 Release assets ship static-linked executables:
 
-| Platform | Asset |
+| Platform | Asset (archives only) |
 |----------|--------|
-| Windows x64 | `ASM2HEX-win64.exe` |
-| Linux x64 | `ASM2HEX-linux-x64` |
-| macOS arm64 | `ASM2HEX-macos-arm64` |
+| Windows x64 | **`ASM2HEX-win64.zip`** (extract → `ASM2HEX.exe`) |
+| Linux x64 | `ASM2HEX-linux-x64.tar.xz` |
+| macOS arm64 | `ASM2HEX-macos-arm64.tar.xz` |
 
-> **Windows Defender note:** unsigned MinGW static builds may occasionally be flagged by ML heuristics (e.g. `Trojan:Win32/Sabsik.FL.A!ml`). This is a known class of **false positives**. Prefer downloads from GitHub Releases; v1.0.3+ embeds version info/manifest and avoids full PE strip. See `RELEASE_NOTES_v1.0.3.md`.
+Bare `.exe` is **not** attached to Releases (zip only), which reduces browser/SmartScreen noise on download.
+
+> **Windows Defender note:** unsigned MinGW static builds may occasionally be flagged by ML heuristics (e.g. `Trojan:Win32/Sabsik.FL.A!ml`). This is a known class of **false positives**. Prefer GitHub Release zips; v1.0.3+ embeds version info/manifest and avoids full PE strip. See `RELEASE_NOTES_v1.0.3.md`.
 
 Local static builds:
 
