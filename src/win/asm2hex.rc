@@ -1,0 +1,34 @@
+// MinGW windres-compatible resources for ASM2HEX
+// 1) Application manifest  2) VERSIONINFO
+
+1 24 "asm2hex.manifest"
+
+1 VERSIONINFO
+FILEVERSION     1,0,2,0
+PRODUCTVERSION  1,0,2,0
+FILEFLAGSMASK   0x3fL
+FILEFLAGS       0x0L
+FILEOS          0x40004L
+FILETYPE        0x1L
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "suifei"
+            VALUE "FileDescription",  "ASM2HEX Converter - Assembly / Machine Code tool"
+            VALUE "FileVersion",      "1.0.2\0"
+            VALUE "InternalName",     "ASM2HEX"
+            VALUE "LegalCopyright",   "Copyright (C) suifei. MIT License."
+            VALUE "OriginalFilename", "ASM2HEX-win64.exe"
+            VALUE "ProductName",      "ASM2HEX Converter"
+            VALUE "ProductVersion",   "1.0.2\0"
+            VALUE "Comments",         "Open source GUI tool. https://github.com/suifei/asm2hex2"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

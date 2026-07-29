@@ -95,6 +95,8 @@ Release assets ship static-linked executables:
 | Linux x64 | `ASM2HEX-linux-x64` |
 | macOS arm64 | `ASM2HEX-macos-arm64` |
 
+> **Windows Defender note:** unsigned MinGW static builds may occasionally be flagged by ML heuristics (e.g. `Trojan:Win32/Sabsik.FL.A!ml`). This is a known class of **false positives**. Prefer downloads from GitHub Releases; v1.0.3+ embeds version info/manifest and avoids full PE strip. See `RELEASE_NOTES_v1.0.3.md`.
+
 Local static builds:
 
 ```bash

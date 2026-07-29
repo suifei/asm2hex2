@@ -110,8 +110,18 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
+# Windows VERSIONINFO + application manifest (reduces AV heuristic noise)
+set(WIN_RESOURCES "")
+if(WIN32)
+    set(WIN_RESOURCES "${CMAKE_SOURCE_DIR}/src/win/asm2hex.rc")
+    # windres needs the manifest next to the .rc
+    set_source_files_properties(${WIN_RESOURCES} PROPERTIES
+        OBJECT_DEPENDS "${CMAKE_SOURCE_DIR}/src/win/asm2hex.manifest"
+    )
+endif()
+
 # Create executable
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${WIN_RESOURCES})
 
 # Platform specific settings from tasks.json
 if(APPLE)
@@ -280,9 +290,11 @@ elseif(WIN32)
         WIN32_EXECUTABLE TRUE
     )
     
-    # Size / static runtime: fully static MinGW binary (no libgcc/libstdc++ DLLs)
+    # Static MinGW runtime (no libgcc/libstdc++ DLLs).
+    # Do NOT use full `-s` strip: aggressive stripping is a common
+    # Windows Defender ML false-positive trigger (e.g. Sabsik.FL.A!ml).
     target_compile_options(${PROJECT_NAME} PRIVATE
-        -Os
+        -O2
         -ffunction-sections
         -fdata-sections
     )
@@ -291,8 +303,9 @@ elseif(WIN32)
         -static
         -static-libgcc
         -static-libstdc++
-        -s
         -Wl,--gc-sections
+        # Keep enough PE metadata for heuristics; strip only debug sections
+        -Wl,--strip-debug
     )
 else() # Linux
     find_package(PkgConfig REQUIRED)
