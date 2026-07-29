@@ -62,6 +62,9 @@ else() # Linux
     include_directories(
         ${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/wx/include/gtk3-unicode-static-3.2
         ${CMAKE_SOURCE_DIR}/dep/linux/include
+        ${CMAKE_SOURCE_DIR}/src/cstool
+        ${CMAKE_SOURCE_DIR}/dep/keystone/include
+        ${CMAKE_SOURCE_DIR}/dep/capstone/include
         /usr/include/gtk-3.0
         /usr/include/at-spi2-atk/2.0
         /usr/include/at-spi-2.0
@@ -247,18 +250,37 @@ elseif(WIN32)
 else() # Linux
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-    
-    target_include_directories(${PROJECT_NAME} PRIVATE 
+    # Optional: gspell is used by wxSTC spell-check support on some builds
+    pkg_check_modules(GSPELL gspell-1)
+
+    target_include_directories(${PROJECT_NAME} PRIVATE
         ${GTK3_INCLUDE_DIRS}
+        ${GSPELL_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/wx/include/gtk3-unicode-static-3.2
         ${CMAKE_SOURCE_DIR}/dep/linux/include
+        ${CMAKE_SOURCE_DIR}/src/cstool
+        ${CMAKE_SOURCE_DIR}/dep/keystone/include
+        ${CMAKE_SOURCE_DIR}/dep/capstone/include
     )
+
+    # Static wxWidgets archives (dependency order: stc → scintilla → adv/html → core → base)
+    set(WX_LIBS
+        "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwx_gtk3u_stc-3.2.a"
+        "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwxscintilla-3.2.a"
+        "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwx_gtk3u_adv-3.2.a"
+        "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwx_gtk3u_html-3.2.a"
+        "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwx_gtk3u_core-3.2.a"
+        "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwx_baseu-3.2.a"
+    )
+
     # Link libraries from tasks.json
     target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${WX_LIBS}
         keystone
         capstone
         pthread
         ${GTK3_LIBRARIES}
+        ${GSPELL_LIBRARIES}
         tiff
         jpeg
         xkbcommon
@@ -276,6 +298,7 @@ else() # Linux
         gthread-2.0
         glib-2.0
         X11
+        Xxf86vm
         SM
         png
         z
@@ -286,13 +309,13 @@ else() # Linux
         fontconfig
         freetype
     )
-    
+
     # Link directories
     target_link_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib"
         "${CMAKE_SOURCE_DIR}/dep/lib/linux"
     )
-    
+
     target_compile_options(${PROJECT_NAME} PRIVATE
         -pthread
         -fno-strict-aliasing

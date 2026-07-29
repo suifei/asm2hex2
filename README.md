@@ -70,6 +70,21 @@ cmake ..
 ninja
 ```
 
+### Linux
+
+1. Build or place a static wxWidgets tree under `dep/linux/` (see `doc/linux.pdf`).
+2. Install GTK3 and X11 development packages. Optionally install `libgspell-1-dev` if your wx build expects gspell.
+3. Configure and build:
+
+```bash
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
+```
+
+Linux CMake notes (fixed in v1.0.1 / issue #2): `src/cstool` is on the include path; wx static archives are linked; `gspell-1` is linked when found via pkg-config; `Xxf86vm` is linked.
+
 ## Dependencies
 
 - [wxWidgets](https://www.wxwidgets.org/): Cross-platform GUI toolkit
