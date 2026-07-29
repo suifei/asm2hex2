@@ -103,15 +103,29 @@ def main() -> int:
     )
 
     # Guard: Windows branch must still include src/cstool (no regression)
-    win = re.search(
-        r"elseif\s*\(\s*WIN32\s*\)(.*?)(?=\nelse\(\)|$)",
+    win_sections = re.findall(
+        r"elseif\s*\(\s*WIN32\s*\)(.*?)(?=\nelse\(\)|\nelseif\s*\(|\nendif\s*\(|$)",
         text,
         flags=re.S,
     )
-    win_text = win.group(1) if win else ""
+    win_text = "\n".join(win_sections)
     require(
         "Windows include path still contains src/cstool",
         re.search(r"src/cstool", win_text) is not None,
+    )
+
+    # Static link options (full file / all WIN32 sections)
+    require(
+        "Windows uses -static / -static-libgcc / -static-libstdc++ link options",
+        re.search(r"-static\b", win_text) is not None
+        and "static-libgcc" in win_text
+        and "static-libstdc++" in win_text
+        and "target_link_options" in win_text,
+    )
+    require(
+        "Linux uses static-libgcc/static-libstdc++ link options",
+        re.search(r"static-libgcc", linux) is not None
+        and re.search(r"static-libstdc\+\+", linux) is not None,
     )
 
     if failures:

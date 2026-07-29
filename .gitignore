@@ -466,3 +466,13 @@ FodyWeavers.xsd
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
 
+
+# Local build / release packaging (not source)
+dist/
+build-win/
+build-linux/
+build-mac/
+.deps-cache/
+
+# Generated platform static engines (built by scripts/build_linux_static.sh)
+dep/lib/linux/

@@ -25,10 +25,12 @@ if(APPLE)
     
     # wxWidgets specific definitions for macOS
     add_definitions(
-        -D__WXOSX_COCOA__ 
+        -D__WXOSX_COCOA__
         -D_FILE_OFFSET_BITS=64
         -DWX_PRECOMP
         -D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=1
+        -DwxDEBUG_LEVEL=0
+        -DNDEBUG
     )
     
     # Include directories for wxWidgets
@@ -56,7 +58,8 @@ elseif(WIN32)
 else() # Linux
     set(wxWidgets_ROOT_DIR "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib")
     set(wxWidgets_CONFIGURATION gtk3u)
-    add_definitions(-D__WXGTK__ -D_FILE_OFFSET_BITS=64 -DWX_PRECOMP)
+    # Match static wx built with --disable-debug (wxDEBUG_LEVEL=0)
+    add_definitions(-D__WXGTK__ -D_FILE_OFFSET_BITS=64 -DWX_PRECOMP -DwxDEBUG_LEVEL=0 -DNDEBUG)
 
     # Include directories for wxWidgets
     include_directories(
@@ -96,6 +99,16 @@ file(GLOB_RECURSE SOURCES
     "${CMAKE_SOURCE_DIR}/src/cstool/*.cpp"
     "${CMAKE_SOURCE_DIR}/src/cstool/*.c"
 )
+
+# Output directory (must be set before add_executable for single-config generators)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/out)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/out)
+
+# Prefer Release for distribution unless user overrides
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
 
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -159,6 +172,12 @@ if(APPLE)
         "${CMAKE_SOURCE_DIR}/dep/lib/osx"
         "/opt/homebrew/lib"
         "/usr/local/lib"
+    )
+
+    # Prefer static C++ runtime; system frameworks remain dynamic
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -static-libgcc
+        -static-libstdc++
     )
 elseif(WIN32)
     # Check if using MSVC
@@ -234,16 +253,17 @@ elseif(WIN32)
         WIN32_EXECUTABLE TRUE
     )
     
-    # 体积优化参数
+    # Size / static runtime: fully static MinGW binary (no libgcc/libstdc++ DLLs)
     target_compile_options(${PROJECT_NAME} PRIVATE
-        -mwindows
-        -static
         -Os
         -ffunction-sections
         -fdata-sections
     )
-    # 链接时去除未用代码和符号
     target_link_options(${PROJECT_NAME} PRIVATE
+        -mwindows
+        -static
+        -static-libgcc
+        -static-libstdc++
         -s
         -Wl,--gc-sections
     )
@@ -273,11 +293,19 @@ else() # Linux
         "${CMAKE_SOURCE_DIR}/dep/linux/linux_lib/lib/libwx_baseu-3.2.a"
     )
 
+    # Prefer vendored static keystone/capstone when present
+    set(LINUX_KEYSTONE "${CMAKE_SOURCE_DIR}/dep/lib/linux/libkeystone.a")
+    set(LINUX_CAPSTONE "${CMAKE_SOURCE_DIR}/dep/lib/linux/libcapstone.a")
+    if(EXISTS "${LINUX_KEYSTONE}" AND EXISTS "${LINUX_CAPSTONE}")
+        set(LINUX_ENGINE_LIBS "${LINUX_KEYSTONE}" "${LINUX_CAPSTONE}")
+    else()
+        set(LINUX_ENGINE_LIBS keystone capstone)
+    endif()
+
     # Link libraries from tasks.json
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${WX_LIBS}
-        keystone
-        capstone
+        ${LINUX_ENGINE_LIBS}
         pthread
         ${GTK3_LIBRARIES}
         ${GSPELL_LIBRARIES}
@@ -319,11 +347,16 @@ else() # Linux
     target_compile_options(${PROJECT_NAME} PRIVATE
         -pthread
         -fno-strict-aliasing
+        -Os
+        -ffunction-sections
+        -fdata-sections
+    )
+    # Static-link libgcc/libstdc++; wx/keystone/capstone are static archives.
+    # GTK/X11 remain shared (normal for Linux GUI apps).
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -static-libgcc
+        -static-libstdc++
+        -Wl,--gc-sections
+        -s
     )
 endif()
-
-# Set output directory (from tasks.json)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)
-
-# Debug configurations from launch.json
-set(CMAKE_BUILD_TYPE Debug)

@@ -1,0 +1,224 @@
+name: Release multi-platform binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing git tag to attach assets to (e.g. v1.0.2)"
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
+      - name: Build static Windows binary
+        shell: msys2 {0}
+        run: |
+          set -e
+          cmake -S . -B build-win -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF
+          cmake --build build-win -j$(nproc)
+          mkdir -p dist out
+          if [ -f out/ASM2HEX.exe ]; then
+            cp -f out/ASM2HEX.exe dist/ASM2HEX-win64.exe
+          else
+            cp -f build-win/ASM2HEX.exe dist/ASM2HEX-win64.exe
+            cp -f build-win/ASM2HEX.exe out/ASM2HEX.exe
+          fi
+          # Fail if MinGW runtime still dynamic
+          objdump -p dist/ASM2HEX-win64.exe | grep -i "DLL Name" | tee /tmp/dlls.txt
+          if grep -Eiq "lib(gcc|stdc\+\+|winpthread)" /tmp/dlls.txt; then
+            echo "MinGW runtime still dynamically linked" >&2
+            exit 1
+          fi
+          ls -lh dist/ASM2HEX-win64.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASM2HEX-win64
+          path: dist/ASM2HEX-win64.exe
+
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            build-essential cmake ninja-build pkg-config \
+            libgtk-3-dev libgspell-1-dev libxxf86vm-dev \
+            libtiff-dev libjpeg-dev libpng-dev zlib1g-dev \
+            libx11-dev libsm-dev libxtst-dev libpango1.0-dev \
+            libgl1-mesa-dev curl
+
+      - name: Build static-as-possible Linux binary
+        run: |
+          chmod +x scripts/build_linux_static.sh
+          JOBS=$(nproc) ./scripts/build_linux_static.sh
+          ls -lh dist/ASM2HEX-linux-x64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASM2HEX-linux-x64
+          path: dist/ASM2HEX-linux-x64
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install brew deps
+        run: |
+          brew install cmake ninja jpeg libpng libtiff xz libmspack pcre2
+
+      - name: Build wxWidgets static + app
+        env:
+          WX_VER: "3.2.6"
+        run: |
+          set -e
+          ROOT="$GITHUB_WORKSPACE"
+          CACHE="$ROOT/.deps-cache"
+          mkdir -p "$CACHE" dep/mac dist out
+          # Remove placeholder files if present
+          [[ -f dep/mac ]] && rm -f dep/mac
+          mkdir -p dep/mac
+
+          if [[ ! -d "$CACHE/wxWidgets-${WX_VER}" ]]; then
+            curl -fsSL "https://github.com/wxWidgets/wxWidgets/releases/download/v${WX_VER}/wxWidgets-${WX_VER}.tar.bz2" \
+              | tar -xj -C "$CACHE"
+          fi
+          PREFIX="$ROOT/dep/mac/mac_lib"
+          rm -rf "$PREFIX"
+          mkdir -p "$PREFIX"
+          pushd "$PREFIX"
+          "$CACHE/wxWidgets-${WX_VER}/configure" \
+            --disable-shared \
+            --enable-unicode \
+            --enable-stl \
+            --with-osx_cocoa \
+            --with-macosx-version-min=12.3 \
+            --prefix="$PREFIX" \
+            --with-libjpeg=sys \
+            --with-libpng=sys \
+            --with-libtiff=sys \
+            --with-zlib=sys \
+            CPPFLAGS="-I$(brew --prefix)/include" \
+            LDFLAGS="-L$(brew --prefix)/lib"
+          make -j$(sysctl -n hw.ncpu)
+          make install
+          popd
+          # Header symlink expected by CMake
+          ln -sfn "$PREFIX/include" dep/mac/include
+
+          # Use vendored osx static engines if present; else build
+          if [[ ! -f dep/lib/osx/libcapstone.a ]]; then
+            curl -fsSL https://github.com/capstone-engine/capstone/archive/refs/tags/5.0.3.tar.gz | tar -xz -C "$CACHE"
+            cmake -S "$CACHE/capstone-5.0.3" -B "$CACHE/capstone-5.0.3/build" -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+              -DCAPSTONE_BUILD_TESTS=OFF -DCAPSTONE_BUILD_CSTOOL=OFF
+            cmake --build "$CACHE/capstone-5.0.3/build" -j$(sysctl -n hw.ncpu)
+            mkdir -p dep/lib/osx
+            cp -f "$(find "$CACHE/capstone-5.0.3/build" -name libcapstone.a | head -1)" dep/lib/osx/
+          fi
+          if [[ ! -f dep/lib/osx/libkeystone.a ]]; then
+            curl -fsSL https://github.com/keystone-engine/keystone/archive/0.9.2.tar.gz | tar -xz -C "$CACHE"
+            cmake -S "$CACHE/keystone-0.9.2" -B "$CACHE/keystone-0.9.2/build" -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_LIBS_ONLY=ON
+            cmake --build "$CACHE/keystone-0.9.2/build" -j$(sysctl -n hw.ncpu)
+            mkdir -p dep/lib/osx
+            cp -f "$(find "$CACHE/keystone-0.9.2/build" -name libkeystone.a | head -1)" dep/lib/osx/
+          fi
+
+          cmake -S . -B build-mac -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.3 \
+            -DBUILD_SHARED_LIBS=OFF
+          cmake --build build-mac -j$(sysctl -n hw.ncpu)
+
+          if [[ -f out/ASM2HEX ]]; then
+            cp -f out/ASM2HEX dist/ASM2HEX-macos-arm64
+          else
+            cp -f build-mac/ASM2HEX dist/ASM2HEX-macos-arm64
+          fi
+          chmod +x dist/ASM2HEX-macos-arm64
+          strip -x dist/ASM2HEX-macos-arm64 || true
+          ls -lh dist/ASM2HEX-macos-arm64
+          otool -L dist/ASM2HEX-macos-arm64 | head -40
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ASM2HEX-macos-arm64
+          path: dist/ASM2HEX-macos-arm64
+
+  publish:
+    needs: [windows, linux, macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Stage release assets
+        run: |
+          mkdir -p dist
+          find artifacts -type f -print
+          cp -f artifacts/ASM2HEX-win64/ASM2HEX-win64.exe dist/ || true
+          cp -f artifacts/ASM2HEX-linux-x64/ASM2HEX-linux-x64 dist/ || true
+          cp -f artifacts/ASM2HEX-macos-arm64/ASM2HEX-macos-arm64 dist/ || true
+          ls -lh dist
+          cd dist
+          # archives for smaller download
+          if [ -f ASM2HEX-win64.exe ]; then 7z a -t7z -mx=9 ASM2HEX-win64.7z ASM2HEX-win64.exe || zip -9 ASM2HEX-win64.zip ASM2HEX-win64.exe; fi
+          if [ -f ASM2HEX-linux-x64 ]; then tar -cJf ASM2HEX-linux-x64.tar.xz ASM2HEX-linux-x64; fi
+          if [ -f ASM2HEX-macos-arm64 ]; then tar -cJf ASM2HEX-macos-arm64.tar.xz ASM2HEX-macos-arm64; fi
+          ls -lh
+
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.name }}
+          files: |
+            dist/ASM2HEX-win64.exe
+            dist/ASM2HEX-win64.7z
+            dist/ASM2HEX-win64.zip
+            dist/ASM2HEX-linux-x64
+            dist/ASM2HEX-linux-x64.tar.xz
+            dist/ASM2HEX-macos-arm64
+            dist/ASM2HEX-macos-arm64.tar.xz
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

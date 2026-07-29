@@ -85,6 +85,26 @@ cmake --build .
 
 Linux CMake notes (fixed in v1.0.1 / issue #2): `src/cstool` is on the include path; wx static archives are linked; `gspell-1` is linked when found via pkg-config; `Xxf86vm` is linked.
 
+### Static prebuilt binaries (v1.0.2+)
+
+Release assets ship static-linked executables:
+
+| Platform | Asset |
+|----------|--------|
+| Windows x64 | `ASM2HEX-win64.exe` |
+| Linux x64 | `ASM2HEX-linux-x64` |
+| macOS arm64 | `ASM2HEX-macos-arm64` |
+
+Local static builds:
+
+```bash
+# Windows (MinGW)
+powershell -File scripts/build_win_static.ps1
+
+# Linux (builds wx/keystone/capstone if missing)
+./scripts/build_linux_static.sh
+```
+
 ## Dependencies
 
 - [wxWidgets](https://www.wxwidgets.org/): Cross-platform GUI toolkit
